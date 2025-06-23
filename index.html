@@ -279,7 +279,7 @@
 
     async function loadQRCode() {
       try {
-        const response = await fetch(`/api/qr/${userID}`);
+        const response = await fetch(`http://10.0.150.83:8080/api/qr/${userID}`);
         const result = await response.json();
         if (result.success) {
           if (result.connected) {
@@ -306,7 +306,7 @@
     function startStatusCheck() {
       checkInterval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/status/${userID}`);
+          const response = await fetch(`http://10.0.150.83:8080/api/status/${userID}`);
           const result = await response.json();
           if (result.success && result.connected) {
             clearInterval(checkInterval);
@@ -336,7 +336,7 @@
     async function finishRegistration() {
       clearInterval(timerInterval);
       try {
-        const response = await fetch('/api/complete-registration', {
+        const response = await fetch('http://10.0.150.83:8080/api/complete-registration', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userID })
