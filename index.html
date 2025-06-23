@@ -269,7 +269,6 @@
         if (authWindow.closed) {
             clearInterval(checkAuth);
             gmailAuthenticated = true;
-            // proceed to next step
             document.getElementById('gmailStatus').innerHTML = '<div class="success">✅ Gmail authenticated successfully!</div>';
             setTimeout(() => { showStep(3); loadQRCode(); }, 2000);
         }
