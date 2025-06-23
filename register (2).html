@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shabana</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d1117;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+    background: #161b22;
+    padding: 40px;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    border: 1px solid rgba(37, 211, 102, 0.4);
+    animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+
+    h1 {
+      color: #25D366;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .step {
+      margin: 20px 0;
+      padding: 30px;
+      background-color: #0d1117;
+      border-radius: 12px;
+      display: none;
+      border: 1px solid #30363d;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .form-group {
+      margin: 20px 0;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: #21262d;
+      color: #c9d1d9;
+      text-align: center;
+    }
+
+    input::placeholder {
+      color: #8b949e;
+    }
+
+    button {
+      background-color: #25D366;
+      color: #fff;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #128C7E;
+      transform: scale(1.02);
+    }
+
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+
+    .qr-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .qr-code {
+      max-width: 280px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .status {
+      margin: 20px auto;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .success {
+      background-color: #1f6f3e;
+      border: 1px solid #2ea043;
+      color: #d2f4d3;
+      padding: 14px 24px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: 20px auto;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .error {
+      background-color: #682c2c;
+      border: 1px solid #f85149;
+      color: #fca5a5;
+    }
+
+    .warning {
+      background-color: #3d2e00;
+      border: 1px solid #f2c94c;
+      color: #f1c40f;
+    }
+
+    .timer {
+      font-size: 18px;
+      font-weight: bold;
+      color: #25D366;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    img.google-logo {
+      width: 150px;
+      height: auto;
+      cursor: pointer;
+    }
+
+    @keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(37, 211, 102, 0.2), 0 0 2px rgba(37, 211, 102, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(37, 211, 102, 0.5), 0 0 4px rgba(37, 211, 102, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(37, 211, 102, 0.2), 0 0 2px rgba(37, 211, 102, 0.4);
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shabana</h1>
+
+    <!-- Step 1 -->
+    <div id="step1" class="step active" style="text-align:center">
+      <h3>Enter WhatsApp Number</h3>
+      <div class="form-group" style="margin-top: 30px;">
+        <input type="tel" id="whatsappNumber" placeholder="92XXXXXXXXX" required style="max-width: 200px; margin: 0 auto;" />
+      </div>
+      <button id="startBtn" onclick="startRegistration()">Start Registration</button>
+
+    </div>
+
+    <!-- Step 2 -->
+    <div id="step2" class="step" style="text-align:center">
+      <h3>Gmail Authentication</h3>
+      <a onclick="authenticateGmail()" style="display:inline-block; margin-top:20px;">
+        <img src="/static/ggl.png" alt="Google Login" class="google-logo" />
+      </a>
+      <div id="gmailStatus" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="step3" class="step" style="text-align:center">
+      <h3>Scan WhatsApp QR Code</h3>
+      <div id="qrDisplay" class="qr-container">Loading QR Code...</div>
+    </div>
+
+    <!-- Step 4 -->
+    <div id="step4" class="step">
+      <h3 style="text-align: center;">Registration Complete</h3>
+      <div id="completionStatus" class="status"></div>
+      <div class="timer" id="timer" style="display: none;"></div>
+    </div>
+
+    <div id="statusMessages"></div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let userID = '';
+    let gmailAuthenticated = false;
+    let whatsappConnected = false;
+    let checkInterval;
+    let timerInterval;
+    let timeLeft = 30;
+
+    function showStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active');
+      currentStep = step;
+    }
+
+    function showStatus(message, type = 'success') {
+      const statusDiv = document.getElementById('statusMessages');
+      statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+      setTimeout(() => statusDiv.innerHTML = '', 5000);
+    }
+
+    async function startRegistration() {
+    const whatsappNumber = document.getElementById('whatsappNumber').value.trim();
+    const startBtn = document.getElementById('startBtn');
+
+    if (!whatsappNumber) {
+        showStatus('Please enter a WhatsApp number', 'error');
+        return;
+    }
+
+    // Disable button and show loading state
+    startBtn.disabled = true;
+    startBtn.textContent = 'Processing...';
+
+    userID = whatsappNumber;
+
+    try {
+        const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userID, whatsappNumber })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+        showStatus('Registration initiated successfully!', 'success');
+        showStep(2);
+        } else {
+        showStatus(`Error: ${result.message}`, 'error');
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start Registration';
+        }
+    } catch (error) {
+        showStatus(`Network error: ${error.message}`, 'error');
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start Registration';
+    }
+    }
+
+
+    function authenticateGmail() {
+      const authWindow = window.open(`http://localhost:8080/auth/${userID}`, 'gmailAuth', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      const checkAuth = setInterval(() => {
+        try {
+          if (authWindow.closed) {
+            clearInterval(checkAuth);
+            gmailAuthenticated = true;
+            document.getElementById('gmailStatus').innerHTML = '<div class="success">✅ Gmail authenticated successfully!</div>';
+            document.getElementById('gmailStatus').style.display = 'block';
+            setTimeout(() => {
+              showStep(3);
+              loadQRCode();
+            }, 2000);
+          }
+        } catch (e) {}
+      }, 1000);
+    }
+
+    async function loadQRCode() {
+      try {
+        const response = await fetch(`/api/qr/${userID}`);
+        const result = await response.json();
+        if (result.success) {
+          if (result.connected) {
+            whatsappConnected = true;
+            showStep(4);
+            startCompletionTimer();
+          } else if (result.qrCode) {
+            const qrImg = document.createElement('img');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.qrCode)}`;
+            qrImg.alt = 'WhatsApp QR Code';
+            qrImg.className = 'qr-code';
+            document.getElementById('qrDisplay').innerHTML = '';
+            document.getElementById('qrDisplay').appendChild(qrImg);
+            startStatusCheck();
+          }
+        } else {
+          showStatus(`Error loading QR: ${result.message}`, 'error');
+        }
+      } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    function startStatusCheck() {
+      checkInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/status/${userID}`);
+          const result = await response.json();
+          if (result.success && result.connected) {
+            clearInterval(checkInterval);
+            whatsappConnected = true;
+            showStep(4);
+            startCompletionTimer();
+          }
+        } catch (error) {
+          console.error('Status check error:', error);
+        }
+      }, 2000);
+    }
+
+    function startCompletionTimer() {
+      document.getElementById('completionStatus').innerHTML = '<div class="success">✅ WhatsApp connected successfully!</div>';
+      document.getElementById('timer').style.display = 'block';
+      timerInterval = setInterval(() => {
+        document.getElementById('timer').textContent = `Syncing history in ${timeLeft} seconds...`;
+        timeLeft--;
+        if (timeLeft < 0) {
+          clearInterval(timerInterval);
+          finishRegistration();
+        }
+      }, 1000);
+    }
+
+    async function finishRegistration() {
+      clearInterval(timerInterval);
+      try {
+        const response = await fetch('/api/complete-registration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userID })
+        });
+        const result = await response.json();
+        if (result.success) {
+          document.getElementById('completionStatus').innerHTML = '<div class="success">🎉 Registration completed successfully!</div>';
+          document.getElementById('timer').style.display = 'none';
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        } else {
+          showStatus(`Error: ${result.message}`, 'error');
+        }
+      } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (checkInterval) clearInterval(checkInterval);
+      if (timerInterval) clearInterval(timerInterval);
+    });
+  </script>
+</body>
+</html>
