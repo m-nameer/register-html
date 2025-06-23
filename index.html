@@ -260,7 +260,7 @@
 
 
     function authenticateGmail() {
-      const authWindow = window.open(`http://localhost:8080/auth/${userID}`, 'gmailAuth', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      const authWindow = window.open(`http://10.0.150.83:8080/auth/${userID}`, 'gmailAuth', 'width=600,height=700,scrollbars=yes,resizable=yes');
       const checkAuth = setInterval(() => {
         try {
           if (authWindow.closed) {
