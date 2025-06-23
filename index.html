@@ -259,23 +259,22 @@
     }
 
 
-    function authenticateGmail() {
-      const authWindow = window.open(`http://10.0.150.83:8080/auth/${userID}`, 'gmailAuth', 'width=600,height=700,scrollbars=yes,resizable=yes');
-      const checkAuth = setInterval(() => {
-        try {
-          if (authWindow.closed) {
+    async function authenticateGmail() {
+    const response = await fetch(`/api/get-oauth-url?userID=${userID}`);
+    const data = await response.json();
+
+    const authWindow = window.open(data.authURL, 'gmailAuth', 'width=600,height=700');
+    
+    const checkAuth = setInterval(() => {
+        if (authWindow.closed) {
             clearInterval(checkAuth);
             gmailAuthenticated = true;
+            // proceed to next step
             document.getElementById('gmailStatus').innerHTML = '<div class="success">✅ Gmail authenticated successfully!</div>';
-            document.getElementById('gmailStatus').style.display = 'block';
-            setTimeout(() => {
-              showStep(3);
-              loadQRCode();
-            }, 2000);
-          }
-        } catch (e) {}
-      }, 1000);
-    }
+            setTimeout(() => { showStep(3); loadQRCode(); }, 2000);
+        }
+    }, 1000);
+}
 
     async function loadQRCode() {
       try {
